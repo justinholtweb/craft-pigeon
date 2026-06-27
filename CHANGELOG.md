@@ -1,6 +1,6 @@
 # Release Notes for Pigeon
 
-## 1.0.0
+## 5.0.0
 
 ### Added
 - Threaded two-way messaging for Craft CMS 5.
