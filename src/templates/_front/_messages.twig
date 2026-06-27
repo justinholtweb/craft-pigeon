@@ -1,0 +1,27 @@
+{# Renders a conversation. Expects: messages (MessageRecord[]), currentUserId (int|null) #}
+{% for message in messages %}
+    {% set isMine = currentUserId is defined and currentUserId and message.authorUserId == currentUserId %}
+    <div class="pg-msg{{ isMine ? ' pg-mine' : '' }}">
+        <div class="pg-meta">
+            <strong>{{ message.authorName ?: (message.authorEmail ?: 'Someone'|t('pigeon')) }}</strong>
+            · {{ message.dateCreated|datetime('short') }}
+        </div>
+        <div class="pg-body">{{ message.body|nl2br }}</div>
+        {% set attachments = message.attachments %}
+        {% if attachments|length %}
+            <ul>
+                {% for att in attachments %}
+                    <li>
+                        {% if att.asset and att.asset.url %}
+                            <a href="{{ att.asset.url }}" target="_blank" rel="noopener">{{ att.filename ?: att.asset.filename }}</a>
+                        {% else %}
+                            {{ att.filename ?: 'Attachment'|t('pigeon') }}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% else %}
+    <p>{{ 'No messages yet.'|t('pigeon') }}</p>
+{% endfor %}

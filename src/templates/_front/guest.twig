@@ -1,0 +1,43 @@
+{% extends 'pigeon/_front/_layout' %}
+{% set pageTitle = thread.title %}
+{% set settings = craft.app.plugins.getPlugin('pigeon').settings %}
+
+{% block content %}
+    <h1>{{ thread.title }}</h1>
+    <p class="pg-status">{{ thread.threadStatus }}</p>
+
+    {% include 'pigeon/_front/_messages' with { messages: messages, currentUserId: null } only %}
+
+    {% if thread.threadStatus != 'closed' %}
+        <div class="pg-card">
+            <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+                {{ csrfInput() }}
+                {{ actionInput('pigeon/guest/reply') }}
+                {{ hiddenInput('token', token) }}
+                {% if settings.enableHoneypot %}
+                    <input class="pg-hp" type="text" name="{{ settings.honeypotField }}" tabindex="-1" autocomplete="off">
+                {% endif %}
+
+                <label for="pg-reply">{{ 'Reply'|t('pigeon') }}</label>
+                <textarea id="pg-reply" name="body" required></textarea>
+
+                <label for="pg-files">{{ 'Attachments'|t('pigeon') }}</label>
+                <input id="pg-files" type="file" name="attachments[]" multiple>
+
+                <button type="submit" class="pg-btn">{{ 'Send reply'|t('pigeon') }}</button>
+            </form>
+        </div>
+    {% else %}
+        <p>{{ 'This conversation is closed. Reply to reopen it.'|t('pigeon') }}</p>
+        <div class="pg-card">
+            <form method="post" accept-charset="UTF-8">
+                {{ csrfInput() }}
+                {{ actionInput('pigeon/guest/reply') }}
+                {{ hiddenInput('token', token) }}
+                <label for="pg-reopen">{{ 'Message'|t('pigeon') }}</label>
+                <textarea id="pg-reopen" name="body" required></textarea>
+                <button type="submit" class="pg-btn">{{ 'Reopen &amp; send'|t('pigeon') }}</button>
+            </form>
+        </div>
+    {% endif %}
+{% endblock %}

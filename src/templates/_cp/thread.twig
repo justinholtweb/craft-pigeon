@@ -1,0 +1,136 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'threads' %}
+{% set crumbs = [{ label: 'Inbox'|t('pigeon'), url: url('pigeon/threads') }] %}
+
+{% set currentUserId = currentUser.id %}
+
+{% block content %}
+    <div id="pigeon-conversation">
+        {% for message in messages %}
+            {% set isMine = message.authorUserId and message.authorUserId == currentUserId %}
+            {% set author = message.authorName ?: (message.authorEmail ?: 'System'|t('pigeon')) %}
+            <div class="pigeon-message{{ message.isInternalNote ? ' pigeon-note' : '' }}{{ isMine ? ' pigeon-mine' : '' }}"
+                 style="border:1px solid {{ message.isInternalNote ? '#f0d27a' : '#e3e5e8' }}; background:{{ message.isInternalNote ? '#fdf6e3' : '#fff' }}; border-radius:8px; padding:14px 16px; margin-bottom:12px;">
+                <div class="light smalltext" style="margin-bottom:6px;">
+                    <strong>{{ author }}</strong>
+                    {% if message.isInternalNote %}<span class="pigeon-badge" style="background:#caa83a; color:#fff; padding:1px 6px; border-radius:3px; font-size:11px; margin-left:6px;">{{ 'Internal note'|t('pigeon') }}</span>{% endif %}
+                    · {{ message.dateCreated|datetime('short') }}
+                </div>
+                <div style="white-space:pre-wrap; line-height:1.5;">{{ message.body|nl2br }}</div>
+                {% set attachments = message.attachments %}
+                {% if attachments|length %}
+                    <ul style="margin:10px 0 0; padding-left:18px;">
+                        {% for att in attachments %}
+                            <li>
+                                {% if att.asset and att.asset.url %}
+                                    <a href="{{ att.asset.url }}" target="_blank" rel="noopener">{{ att.filename ?: att.asset.filename }}</a>
+                                {% else %}
+                                    {{ att.filename ?: 'Attachment'|t('pigeon') }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="light">{{ 'No messages yet.'|t('pigeon') }}</p>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    {% if currentUser.can('pigeon:manageThreads') %}
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+            {{ csrfInput() }}
+            {{ actionInput('pigeon/admin/reply') }}
+            {{ hiddenInput('threadId', thread.id) }}
+            {{ redirectInput('pigeon/threads/' ~ thread.id) }}
+
+            {{ forms.textarea({
+                name: 'body',
+                rows: 4,
+                placeholder: 'Write a reply…'|t('pigeon'),
+            }) }}
+
+            <div class="flex" style="margin-top:10px; align-items:center; gap:16px;">
+                <input type="file" name="attachments[]" multiple>
+                {{ forms.checkbox({
+                    label: 'Internal note (staff only)'|t('pigeon'),
+                    name: 'isInternalNote',
+                    value: '1',
+                }) }}
+                <div class="flex-grow"></div>
+                <button type="submit" class="btn submit">{{ 'Send'|t('pigeon') }}</button>
+            </div>
+        </form>
+    {% else %}
+        <p class="light">{{ 'You have read-only access to this thread.'|t('pigeon') }}</p>
+    {% endif %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        <div class="data">
+            <h5 class="heading">{{ 'Status'|t('pigeon') }}</h5>
+            <div class="value">
+                <form method="post" accept-charset="UTF-8" class="flex">
+                    {{ csrfInput() }}
+                    {{ actionInput('pigeon/admin/status') }}
+                    {{ hiddenInput('threadId', thread.id) }}
+                    {{ redirectInput('pigeon/threads/' ~ thread.id) }}
+                    {{ forms.select({
+                        name: 'status',
+                        value: thread.threadStatus,
+                        options: [
+                            { label: 'Open'|t('pigeon'), value: 'open' },
+                            { label: 'Pending'|t('pigeon'), value: 'pending' },
+                            { label: 'Closed'|t('pigeon'), value: 'closed' },
+                        ],
+                    }) }}
+                    <button type="submit" class="btn">{{ 'Update'|t('pigeon') }}</button>
+                </form>
+            </div>
+        </div>
+
+        {% if currentUser.can('pigeon:assignThreads') %}
+            <div class="data">
+                <h5 class="heading">{{ 'Assigned to'|t('pigeon') }}</h5>
+                <div class="value">
+                    <form method="post" accept-charset="UTF-8" class="flex">
+                        {{ csrfInput() }}
+                        {{ actionInput('pigeon/admin/assign') }}
+                        {{ hiddenInput('threadId', thread.id) }}
+                        {{ redirectInput('pigeon/threads/' ~ thread.id) }}
+                        {{ forms.select({
+                            name: 'assigneeId',
+                            value: thread.assigneeId,
+                            options: staffOptions,
+                        }) }}
+                        <button type="submit" class="btn">{{ 'Save'|t('pigeon') }}</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Type'|t('pigeon') }}</h5>
+            <div class="value">{{ thread.type|capitalize }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Started by'|t('pigeon') }}</h5>
+            <div class="value">{{ thread.starter ? thread.starter.friendlyName : (thread.starterEmail ?: '—') }}</div>
+        </div>
+    </div>
+
+    <div class="meta">
+        <h5 class="heading">{{ 'Participants'|t('pigeon') }}</h5>
+        <ul>
+            {% for p in participants %}
+                <li class="smalltext">{{ p.name ?: (p.email ?: 'Guest'|t('pigeon')) }} <span class="light">({{ p.role }})</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{
+    "name": "justinholtweb/pigeon",
+    "description": "Two-way threaded messaging for Craft CMS 5 — customer support inboxes and user-to-user conversations with email, control panel, and on-site notifications.",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "pigeon",
+        "messaging",
+        "support",
+        "inbox",
+        "notifications"
+    ],
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [
+        {
+            "name": "Justin Holt",
+            "homepage": "https://justinholt.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "craftcms/cms": "^5.4.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "justinholtweb\\pigeon\\": "src/"
+        }
+    },
+    "support": {
+        "issues": "https://github.com/justinholtweb/craft-pigeon/issues",
+        "source": "https://github.com/justinholtweb/craft-pigeon"
+    },
+    "extra": {
+        "name": "Pigeon",
+        "handle": "pigeon",
+        "developer": "Justin Holt",
+        "developerUrl": "https://justinholt.com",
+        "documentationUrl": "https://github.com/justinholtweb/craft-pigeon",
+        "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-pigeon/main/CHANGELOG.md",
+        "class": "justinholtweb\\pigeon\\Plugin"
+    }
+}

@@ -1,0 +1,31 @@
+{# Example guest "contact support" form. Copy into your own templates and restyle.
+   Posts to the Pigeon guest/start action. Works for anonymous visitors. #}
+{% set settings = craft.app.plugins.getPlugin('pigeon').settings %}
+
+{% if settings.allowGuestThreads %}
+    <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+        {{ csrfInput() }}
+        {{ actionInput('pigeon/guest/start') }}
+        {% if settings.enableHoneypot %}
+            <input style="position:absolute;left:-9999px" type="text" name="{{ settings.honeypotField }}" tabindex="-1" autocomplete="off">
+        {% endif %}
+
+        <label>{{ 'Your name'|t('pigeon') }}
+            <input type="text" name="name">
+        </label>
+        <label>{{ 'Your email'|t('pigeon') }}
+            <input type="email" name="email" required>
+        </label>
+        <label>{{ 'Subject'|t('pigeon') }}
+            <input type="text" name="subject">
+        </label>
+        <label>{{ 'How can we help?'|t('pigeon') }}
+            <textarea name="body" required></textarea>
+        </label>
+        <label>{{ 'Attachments'|t('pigeon') }}
+            <input type="file" name="attachments[]" multiple>
+        </label>
+
+        <button type="submit">{{ 'Send message'|t('pigeon') }}</button>
+    </form>
+{% endif %}

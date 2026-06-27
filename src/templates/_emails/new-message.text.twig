@@ -1,0 +1,15 @@
+{% apply spaceless %}{% endapply -%}
+{% if recipientName %}{{ 'Hi {name},'|t('pigeon', { name: recipientName }) }}
+
+{% endif -%}
+{% if isStaff -%}
+{{ '{author} sent a new message on the thread "{subject}".'|t('pigeon', { author: author, subject: thread.title }) }}
+{%- else -%}
+{{ 'You have a new reply from {author} on "{subject}".'|t('pigeon', { author: author, subject: thread.title }) }}
+{%- endif %}
+
+----------------------------------------
+{{ message.body|striptags }}
+----------------------------------------
+
+{{ 'View & reply:'|t('pigeon') }} {{ link }}

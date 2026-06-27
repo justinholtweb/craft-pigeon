@@ -1,0 +1,23 @@
+{% extends 'pigeon/_front/_layout' %}
+{% set pageTitle = 'Link expired'|t('pigeon') %}
+{% set settings = craft.app.plugins.getPlugin('pigeon').settings %}
+
+{% block content %}
+    <h1>{{ 'This link has expired'|t('pigeon') }}</h1>
+    <p>{{ 'Enter the email you used and we’ll send you a fresh link to your conversation.'|t('pigeon') }}</p>
+
+    <div class="pg-card">
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            {{ actionInput('pigeon/guest/request-link') }}
+            {% if settings.enableHoneypot %}
+                <input class="pg-hp" type="text" name="{{ settings.honeypotField }}" tabindex="-1" autocomplete="off">
+            {% endif %}
+
+            <label for="pg-email">{{ 'Email'|t('pigeon') }}</label>
+            <input id="pg-email" type="email" name="email" required>
+
+            <button type="submit" class="pg-btn">{{ 'Send me a new link'|t('pigeon') }}</button>
+        </form>
+    </div>
+{% endblock %}

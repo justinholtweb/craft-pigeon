@@ -1,0 +1,46 @@
+{% apply spaceless %}
+<!DOCTYPE html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ (pageTitle ?? 'Messages'|t('pigeon')) }}</title>
+    <style>
+        :root { --pg-accent:#2f6f4f; --pg-border:#e3e5e8; --pg-muted:#6b7280; }
+        * { box-sizing:border-box; }
+        body { margin:0; background:#f4f4f7; color:#1f2933; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; line-height:1.5; }
+        .pg-wrap { max-width:720px; margin:0 auto; padding:32px 20px 64px; }
+        .pg-card { background:#fff; border:1px solid var(--pg-border); border-radius:12px; padding:20px 22px; margin-bottom:16px; }
+        .pg-msg { border:1px solid var(--pg-border); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+        .pg-msg.pg-mine { background:#eef6f1; border-color:#cfe6da; }
+        .pg-msg .pg-meta { font-size:13px; color:var(--pg-muted); margin-bottom:6px; }
+        .pg-body { white-space:pre-wrap; }
+        a { color:var(--pg-accent); }
+        h1 { font-size:22px; margin:0 0 16px; }
+        h2 { font-size:18px; margin:24px 0 12px; }
+        label { display:block; font-weight:600; font-size:14px; margin:12px 0 4px; }
+        input[type=text], input[type=email], textarea, select { width:100%; padding:10px 12px; border:1px solid var(--pg-border); border-radius:8px; font:inherit; }
+        textarea { min-height:120px; resize:vertical; }
+        .pg-btn { display:inline-block; background:var(--pg-accent); color:#fff; border:0; border-radius:8px; padding:11px 20px; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; margin-top:14px; }
+        .pg-flash { padding:12px 14px; border-radius:8px; margin-bottom:16px; font-size:14px; }
+        .pg-flash.notice { background:#eef6f1; color:#235c3f; }
+        .pg-flash.error { background:#fbeaea; color:#8a2020; }
+        .pg-badge { background:var(--pg-accent); color:#fff; border-radius:999px; padding:1px 9px; font-size:12px; }
+        .pg-list a { display:block; padding:12px 0; border-bottom:1px solid var(--pg-border); text-decoration:none; color:inherit; }
+        .pg-list a:hover { color:var(--pg-accent); }
+        .pg-status { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--pg-muted); }
+        .pg-hp { position:absolute; left:-9999px; }
+    </style>
+</head>
+<body>
+    <div class="pg-wrap">
+        {% set flash = craft.app.session.getFlash('notice') %}
+        {% if flash %}<div class="pg-flash notice">{{ flash }}</div>{% endif %}
+        {% set flashErr = craft.app.session.getFlash('error') %}
+        {% if flashErr %}<div class="pg-flash error">{{ flashErr }}</div>{% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+{% endapply %}

@@ -1,0 +1,26 @@
+{% extends 'pigeon/_front/_layout' %}
+{% set pageTitle = thread.title %}
+
+{% block content %}
+    <p><a href="{{ url('pigeon/threads') }}">&larr; {{ 'All messages'|t('pigeon') }}</a></p>
+    <h1>{{ thread.title }}</h1>
+    <p class="pg-status">{{ thread.threadStatus }}</p>
+
+    {% include 'pigeon/_front/_messages' with { messages: messages, currentUserId: currentUser.id } only %}
+
+    <div class="pg-card">
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+            {{ csrfInput() }}
+            {{ actionInput('pigeon/messages/reply') }}
+            {{ hiddenInput('threadId', thread.id) }}
+
+            <label for="pg-reply">{{ 'Reply'|t('pigeon') }}</label>
+            <textarea id="pg-reply" name="body" required></textarea>
+
+            <label for="pg-files">{{ 'Attachments'|t('pigeon') }}</label>
+            <input id="pg-files" type="file" name="attachments[]" multiple>
+
+            <button type="submit" class="pg-btn">{{ 'Send reply'|t('pigeon') }}</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% import '_includes/forms' as forms %}
+
+{% set volumeOptions = [{ label: '— None (attachments disabled) —'|t('pigeon'), value: '' }] %}
+{% for volume in craft.app.volumes.allVolumes %}
+    {% set volumeOptions = volumeOptions|merge([{ label: volume.name, value: volume.uid }]) %}
+{% endfor %}
+
+{% set recipients = settings.supportNotificationRecipients %}
+{% if recipients is iterable %}{% set recipients = recipients|join(', ') %}{% endif %}
+
+<h2>{{ 'Participation'|t('pigeon') }}</h2>
+
+{{ forms.lightswitchField({
+    label: 'Allow guest support threads'|t('pigeon'),
+    instructions: 'Let visitors without a Craft account start threads, identified by email + a signed token link.'|t('pigeon'),
+    name: 'allowGuestThreads',
+    on: settings.allowGuestThreads,
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Allow user-to-user threads'|t('pigeon'),
+    instructions: 'Let logged-in users start direct conversations with other users.'|t('pigeon'),
+    name: 'allowUserThreads',
+    on: settings.allowUserThreads,
+}) }}
+
+<hr>
+<h2>{{ 'Notifications'|t('pigeon') }}</h2>
+
+{{ forms.textField({
+    label: 'Support notification recipients'|t('pigeon'),
+    instructions: 'Comma-separated email addresses alerted to new, unassigned guest support threads. Defaults to the system email.'|t('pigeon'),
+    name: 'supportNotificationRecipients',
+    value: recipients,
+}) }}
+
+{{ forms.textField({
+    label: 'From name'|t('pigeon'),
+    instructions: 'Leave blank to use the system default.'|t('pigeon'),
+    name: 'fromName',
+    value: settings.fromName,
+}) }}
+
+{{ forms.textField({
+    label: 'From email'|t('pigeon'),
+    instructions: 'Leave blank to use the system default.'|t('pigeon'),
+    name: 'fromEmail',
+    value: settings.fromEmail,
+}) }}
+
+<hr>
+<h2>{{ 'Attachments'|t('pigeon') }}</h2>
+
+{{ forms.selectField({
+    label: 'Attachment volume'|t('pigeon'),
+    instructions: 'Where uploaded files are stored. Select “None” to disable attachments.'|t('pigeon'),
+    name: 'attachmentVolumeUid',
+    value: settings.attachmentVolumeUid,
+    options: volumeOptions,
+}) }}
+
+{{ forms.textField({
+    label: 'Max attachments per message'|t('pigeon'),
+    name: 'maxAttachmentsPerMessage',
+    value: settings.maxAttachmentsPerMessage,
+    size: 5,
+    type: 'number',
+}) }}
+
+{{ forms.textField({
+    label: 'Max attachment size (MB)'|t('pigeon'),
+    name: 'maxAttachmentSizeMb',
+    value: settings.maxAttachmentSizeMb,
+    size: 5,
+    type: 'number',
+}) }}
+
+<hr>
+<h2>{{ 'Guest access & anti-spam'|t('pigeon') }}</h2>
+
+{{ forms.textField({
+    label: 'Guest token lifetime (days)'|t('pigeon'),
+    instructions: 'How long a guest access link stays valid, measured from the thread’s last activity.'|t('pigeon'),
+    name: 'guestTokenLifetimeDays',
+    value: settings.guestTokenLifetimeDays,
+    size: 5,
+    type: 'number',
+}) }}
+
+{{ forms.textField({
+    label: 'Rate limit: max messages'|t('pigeon'),
+    name: 'rateLimitMaxMessages',
+    value: settings.rateLimitMaxMessages,
+    size: 5,
+    type: 'number',
+}) }}
+
+{{ forms.textField({
+    label: 'Rate limit: window (seconds)'|t('pigeon'),
+    name: 'rateLimitWindowSeconds',
+    value: settings.rateLimitWindowSeconds,
+    size: 5,
+    type: 'number',
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Enable honeypot field'|t('pigeon'),
+    instructions: 'Adds a hidden field to guest forms; submissions that fill it are silently rejected.'|t('pigeon'),
+    name: 'enableHoneypot',
+    on: settings.enableHoneypot,
+}) }}

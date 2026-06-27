@@ -1,0 +1,28 @@
+{% if count > 0 %}
+    <p style="margin:0 0 12px;">
+        <span class="status orange"></span>
+        {{ '{count} thread(s) awaiting a reply'|t('pigeon', { count: count }) }}
+    </p>
+{% else %}
+    <p class="light" style="margin:0 0 12px;">{{ 'Nothing waiting on a reply. 🎉'|t('pigeon') }}</p>
+{% endif %}
+
+{% if threads|length %}
+    <table class="data fullwidth">
+        <tbody>
+            {% for thread in threads %}
+                <tr>
+                    <td>
+                        <a href="{{ url('pigeon/threads/' ~ thread.id) }}">{{ thread.title }}</a><br>
+                        <span class="light smalltext">
+                            {{ thread.starter ? thread.starter.friendlyName : (thread.starterEmail ?: '—') }}
+                            {% if thread.lastMessageAt %} · {{ thread.lastMessageAt|datetime('short') }}{% endif %}
+                        </span>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<p style="margin-top:12px;"><a class="go" href="{{ url('pigeon/threads') }}">{{ 'Open inbox'|t('pigeon') }}</a></p>

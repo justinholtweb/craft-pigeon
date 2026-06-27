@@ -1,0 +1,38 @@
+{% extends 'pigeon/_front/_layout' %}
+{% set pageTitle = 'Your messages'|t('pigeon') %}
+
+{% block content %}
+    <h1>{{ 'Your messages'|t('pigeon') }}
+        {% if unreadCount %}<span class="pg-badge">{{ unreadCount }}</span>{% endif %}
+    </h1>
+
+    <div class="pg-card pg-list">
+        {% for thread in threads %}
+            {% set unread = craft.pigeon.isUnread(thread.id) %}
+            <a href="{{ url('pigeon/threads/' ~ thread.id) }}">
+                <strong>{{ thread.title }}</strong>
+                {% if unread %}<span class="pg-badge">{{ 'new'|t('pigeon') }}</span>{% endif %}
+                <div class="pg-status">{{ thread.threadStatus }} · {{ thread.lastMessageAt ? thread.lastMessageAt|datetime('short') : '' }}</div>
+            </a>
+        {% else %}
+            <p>{{ 'You have no messages yet.'|t('pigeon') }}</p>
+        {% endfor %}
+    </div>
+
+    <h2>{{ 'Start a new message'|t('pigeon') }}</h2>
+    <div class="pg-card">
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            {{ actionInput('pigeon/threads/start') }}
+            {{ hiddenInput('type', 'support') }}
+
+            <label for="pg-subject">{{ 'Subject'|t('pigeon') }}</label>
+            <input id="pg-subject" type="text" name="subject" required>
+
+            <label for="pg-body">{{ 'Message'|t('pigeon') }}</label>
+            <textarea id="pg-body" name="body" required></textarea>
+
+            <button type="submit" class="pg-btn">{{ 'Send'|t('pigeon') }}</button>
+        </form>
+    </div>
+{% endblock %}
