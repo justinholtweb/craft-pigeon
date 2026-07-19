@@ -69,9 +69,12 @@ class Participants extends Component
      */
     public function getForThread(int $threadId): array
     {
-        return ParticipantRecord::find()
+        /** @var ParticipantRecord[] $records */
+        $records = ParticipantRecord::find()
             ->where(['threadId' => $threadId])
             ->all();
+
+        return $records;
     }
 
     public function getForUser(int $threadId, int $userId): ?ParticipantRecord
@@ -132,9 +135,12 @@ class Participants extends Component
             return [];
         }
 
-        return ParticipantRecord::find()
+        /** @var ParticipantRecord[] $records */
+        $records = ParticipantRecord::find()
             ->where(['email' => $email, 'userId' => null, 'leftAt' => null])
             ->all();
+
+        return $records;
     }
 
     /**

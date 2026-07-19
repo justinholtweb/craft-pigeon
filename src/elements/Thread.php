@@ -199,7 +199,7 @@ class Thread extends Element
         return Craft::$app->getUsers()->getUserById($this->starterUserId);
     }
 
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'threadStatus':
@@ -218,7 +218,7 @@ class Thread extends Element
                 $user = $this->getAssignee();
                 return $user ? Html::encode((string)$user) : '—';
             default:
-                return parent::tableAttributeHtml($attribute);
+                return parent::attributeHtml($attribute);
         }
     }
 

@@ -6,7 +6,6 @@ use Craft;
 use justinholtweb\pigeon\elements\Thread;
 use justinholtweb\pigeon\Plugin;
 use justinholtweb\pigeon\records\MessageRecord;
-use justinholtweb\pigeon\records\ParticipantRecord;
 
 /**
  * `craft.pigeon` Twig API for the front end.

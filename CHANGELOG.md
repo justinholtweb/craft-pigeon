@@ -1,5 +1,13 @@
 # Release Notes for Pigeon
 
+## 5.0.1
+
+### Fixed
+- Control-panel thread list columns (status, type, starter, assignee) now render correctly. The `Thread` element overrode the Craft 4 `tableAttributeHtml()` method, which Craft 5 renamed to `attributeHtml()`; the override was never called, so columns fell back to defaults.
+
+### Changed
+- Added PHPStan (level 5) and ECS (Craft CMS coding standard) configuration and resolved all findings for type safety and code-style consistency.
+
 ## 5.0.0
 
 ### Added

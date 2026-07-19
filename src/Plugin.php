@@ -57,7 +57,7 @@ class Plugin extends BasePlugin
     {
         parent::init();
 
-        Craft::$app->onInit(function (): void {
+        Craft::$app->onInit(function(): void {
             $this->_registerElementTypes();
             $this->_registerWidgetTypes();
             $this->_registerVariable();
@@ -112,7 +112,7 @@ class Plugin extends BasePlugin
         Event::on(
             Elements::class,
             Elements::EVENT_REGISTER_ELEMENT_TYPES,
-            static function (RegisterComponentTypesEvent $event): void {
+            static function(RegisterComponentTypesEvent $event): void {
                 $event->types[] = Thread::class;
             }
         );
@@ -123,7 +123,7 @@ class Plugin extends BasePlugin
         Event::on(
             Dashboard::class,
             Dashboard::EVENT_REGISTER_WIDGET_TYPES,
-            static function (RegisterComponentTypesEvent $event): void {
+            static function(RegisterComponentTypesEvent $event): void {
                 $event->types[] = InboxWidget::class;
             }
         );
@@ -134,7 +134,7 @@ class Plugin extends BasePlugin
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
-            static function (Event $event): void {
+            static function(Event $event): void {
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
                 $variable->set('pigeon', PigeonVariable::class);
@@ -150,7 +150,7 @@ class Plugin extends BasePlugin
         Event::on(
             View::class,
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
-            static function (RegisterTemplateRootsEvent $event): void {
+            static function(RegisterTemplateRootsEvent $event): void {
                 $event->roots['pigeon'] = __DIR__ . '/templates';
             }
         );
@@ -161,7 +161,7 @@ class Plugin extends BasePlugin
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            static function (RegisterUrlRulesEvent $event): void {
+            static function(RegisterUrlRulesEvent $event): void {
                 $event->rules['pigeon'] = 'pigeon/admin/index';
                 $event->rules['pigeon/threads'] = 'pigeon/admin/index';
                 $event->rules['pigeon/threads/<threadId:\d+>'] = 'pigeon/admin/thread';
@@ -175,7 +175,7 @@ class Plugin extends BasePlugin
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            static function (RegisterUrlRulesEvent $event): void {
+            static function(RegisterUrlRulesEvent $event): void {
                 $event->rules['pigeon/threads'] = 'pigeon/threads/index';
                 $event->rules['pigeon/threads/<threadId:\d+>'] = 'pigeon/threads/view';
                 $event->rules['pigeon/t/<token:[^\/]+>'] = 'pigeon/guest/view';
@@ -188,7 +188,7 @@ class Plugin extends BasePlugin
         Event::on(
             UserPermissions::class,
             UserPermissions::EVENT_REGISTER_PERMISSIONS,
-            static function (RegisterUserPermissionsEvent $event): void {
+            static function(RegisterUserPermissionsEvent $event): void {
                 $event->permissions[] = [
                     'heading' => Craft::t('pigeon', 'Pigeon'),
                     'permissions' => [

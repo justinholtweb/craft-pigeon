@@ -4,7 +4,13 @@ namespace justinholtweb\pigeon\elements\db;
 
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use justinholtweb\pigeon\elements\Thread;
 
+/**
+ * @method Thread[] all($db = null)
+ * @method Thread|null one($db = null)
+ * @method Thread|null nth(int $n, ?\yii\db\Connection $db = null)
+ */
 class ThreadQuery extends ElementQuery
 {
     public mixed $type = null;

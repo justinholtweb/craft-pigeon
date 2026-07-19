@@ -123,7 +123,10 @@ class Messages extends Component
             $query->andWhere(['isInternalNote' => false]);
         }
 
-        return $query->all();
+        /** @var MessageRecord[] $records */
+        $records = $query->all();
+
+        return $records;
     }
 
     private function isStaff(int $userId): bool
