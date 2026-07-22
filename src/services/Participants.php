@@ -7,6 +7,7 @@ use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use DateInterval;
 use DateTime;
+use DateTimeZone;
 use justinholtweb\pigeon\elements\Thread;
 use justinholtweb\pigeon\enums\ParticipantRole;
 use justinholtweb\pigeon\Plugin;
@@ -116,8 +117,11 @@ class Participants extends Component
         }
 
         if ($record->tokenExpiresAt !== null) {
-            $expires = new DateTime($record->tokenExpiresAt);
-            if ($expires < new DateTime()) {
+            // Dates are stored in UTC, so they must be parsed as UTC — parsing in
+            // the system time zone would keep expired tokens alive (or kill live
+            // ones) by the length of the UTC offset.
+            $utc = new DateTimeZone('UTC');
+            if (new DateTime($record->tokenExpiresAt, $utc) < new DateTime('now', $utc)) {
                 return null;
             }
         }

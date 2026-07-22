@@ -101,6 +101,19 @@ The guest is emailed a private link to follow the conversation; your support rec
 
 Guest forms are protected by a per-IP fixed-window rate limit and an optional honeypot field, both configurable in settings.
 
+## Development
+
+The repo ships a [DDEV](https://ddev.com) environment and a Codeception suite that boots a real Craft installation against a scratch `pigeon_test` database.
+
+```bash
+ddev start
+ddev exec composer test        # Codeception unit + integration suite
+ddev exec composer phpstan     # static analysis (level 5)
+ddev exec composer ecs-check   # coding standard
+```
+
+The suite drops and reinstalls the test database on every run, and each test runs in a transaction that is rolled back afterwards.
+
 ## License
 
 See [LICENSE.md](LICENSE.md).

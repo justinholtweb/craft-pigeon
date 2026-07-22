@@ -2,7 +2,7 @@
     "name": "justinholtweb/pigeon",
     "description": "Two-way threaded messaging for Craft CMS 5 — customer support inboxes and user-to-user conversations with email, control panel, and on-site notifications.",
     "type": "craft-plugin",
-    "version": "5.0.1",
+    "version": "5.0.2",
     "keywords": [
         "craft",
         "cms",
@@ -28,12 +28,24 @@
         "craftcms/cms": "^5.4.0"
     },
     "require-dev": {
+        "codeception/codeception": "^5.2.0",
+        "codeception/module-asserts": "^3.0.0",
+        "codeception/module-datafactory": "^3.0.0",
+        "codeception/module-yii2": "^1.1.9",
         "craftcms/ecs": "dev-main",
-        "craftcms/phpstan": "dev-main"
+        "craftcms/phpstan": "dev-main",
+        "fakerphp/faker": "^1.19.0",
+        "league/factory-muffin": "^3.3.0",
+        "vlucas/phpdotenv": "^5.4.1"
     },
     "autoload": {
         "psr-4": {
             "justinholtweb\\pigeon\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "justinholtweb\\pigeontests\\": "tests/"
         }
     },
     "config": {
@@ -46,7 +58,9 @@
     "scripts": {
         "phpstan": "phpstan analyse --memory-limit=1G",
         "ecs-check": "ecs check --ansi",
-        "ecs-fix": "ecs check --fix --ansi"
+        "ecs-fix": "ecs check --fix --ansi",
+        "test": "codecept run unit",
+        "test-build": "codecept build"
     },
     "support": {
         "issues": "https://github.com/justinholtweb/craft-pigeon/issues",
