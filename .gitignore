@@ -2,3 +2,10 @@
 .DS_Store
 
 .playwright-mcp/
+
+# Codeception
+tests/_output/
+tests/_support/_generated/
+tests/_support/UnitTester.php
+tests/_craft/storage/*
+!tests/_craft/storage/.gitkeep

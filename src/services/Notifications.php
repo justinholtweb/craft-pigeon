@@ -109,7 +109,7 @@ class Notifications extends Component
             ->type(ThreadType::Support->value)
             ->threadStatus(ThreadStatus::Pending->value)
             ->status(null)
-            ->orderBy(['pigeon_threads.lastMessageAt' => SORT_DESC])
+            ->orderBy(['pigeon_threads.lastMessageAt' => SORT_DESC, 'elements.id' => SORT_DESC])
             ->limit($limit)
             ->all();
     }

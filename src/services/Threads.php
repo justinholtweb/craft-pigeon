@@ -116,7 +116,13 @@ class Threads extends Component
         $query = Thread::find()
             ->forUser($user->id)
             ->status(null)
-            ->orderBy(['pigeon_threads.lastMessageAt' => SORT_DESC, 'elements.dateCreated' => SORT_DESC]);
+            ->orderBy([
+                'pigeon_threads.lastMessageAt' => SORT_DESC,
+                'elements.dateCreated' => SORT_DESC,
+                // Stable tiebreak: threads created within the same second would
+                // otherwise come back in whatever order the DB felt like.
+                'elements.id' => SORT_DESC,
+            ]);
 
         if ($type !== null) {
             $query->type($type);

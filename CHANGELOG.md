@@ -1,5 +1,17 @@
 # Release Notes for Pigeon
 
+## 5.0.2
+
+### Fixed
+- Guest access tokens now expire on time. Expiry timestamps are stored in UTC but were parsed in the system time zone, so an expired link stayed usable for the length of the site's UTC offset (and links expired early on sites ahead of UTC).
+- Thread lists are now ordered deterministically. `craft.pigeon.threads()`, the front-end thread list, and the Pigeon Inbox widget sorted only by last-activity and creation timestamps, so threads touched within the same second came back in arbitrary order.
+
+### Added
+- Codeception test suite (142 tests) covering the services, `Thread` element and query, notification job and email templates, settings, helpers, and the install migration's schema. Run it with `composer test`.
+
+### Changed
+- PHPStan and ECS now analyze the test suite alongside `src/`.
+
 ## 5.0.1
 
 ### Fixed
