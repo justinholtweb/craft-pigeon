@@ -2,7 +2,7 @@
     "name": "justinholtweb/pigeon",
     "description": "Two-way threaded messaging for Craft CMS 5 — customer support inboxes and user-to-user conversations with email, control panel, and on-site notifications.",
     "type": "craft-plugin",
-    "version": "5.0.2",
+    "version": "5.0.3",
     "keywords": [
         "craft",
         "cms",

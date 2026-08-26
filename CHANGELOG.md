@@ -1,5 +1,11 @@
 # Release Notes for Pigeon
 
+## 5.0.3 - 2026-08-26
+
+### Fixed
+
+- **The threads index returned HTTP 500 whenever the status column was shown.** Craft 5 expects `statuses()` to return `craft\enums\Color` cases; the string colours this plugin returned made `Cp::componentStatusLabelHtml()` fail with "Attempt to read property `value` on string", leaving the inbox blank with no error shown.
+
 ## 5.0.2
 
 ### Fixed

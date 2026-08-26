@@ -9,6 +9,7 @@ use craft\elements\actions\Restore;
 use craft\elements\User;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
+use craft\enums\Color;
 use justinholtweb\pigeon\elements\db\ThreadQuery;
 use justinholtweb\pigeon\enums\ThreadStatus;
 use justinholtweb\pigeon\enums\ThreadType;
@@ -72,9 +73,9 @@ class Thread extends Element
     public static function statuses(): array
     {
         return [
-            ThreadStatus::Open->value => ['label' => Craft::t('pigeon', 'Open'), 'color' => 'green'],
-            ThreadStatus::Pending->value => ['label' => Craft::t('pigeon', 'Pending'), 'color' => 'orange'],
-            ThreadStatus::Closed->value => ['label' => Craft::t('pigeon', 'Closed'), 'color' => 'grey'],
+            ThreadStatus::Open->value => ['label' => Craft::t('pigeon', 'Open'), 'color' => Color::Green],
+            ThreadStatus::Pending->value => ['label' => Craft::t('pigeon', 'Pending'), 'color' => Color::Orange],
+            ThreadStatus::Closed->value => ['label' => Craft::t('pigeon', 'Closed'), 'color' => Color::Gray],
         ];
     }
 
