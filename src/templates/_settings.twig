@@ -1,8 +1,16 @@
 {% import '_includes/forms' as forms %}
 
 {% set volumeOptions = [{ label: '— None (attachments disabled) —'|t('pigeon'), value: '' }] %}
+{% set attachmentVolumeIsPublic = false %}
 {% for volume in craft.app.volumes.allVolumes %}
-    {% set volumeOptions = volumeOptions|merge([{ label: volume.name, value: volume.uid }]) %}
+    {% set isPublic = volume.fs.hasUrls ?? false %}
+    {% set volumeOptions = volumeOptions|merge([{
+        label: isPublic ? '{name} (public URLs)'|t('pigeon', { name: volume.name }) : volume.name,
+        value: volume.uid,
+    }]) %}
+    {% if isPublic and volume.uid == settings.attachmentVolumeUid %}
+        {% set attachmentVolumeIsPublic = true %}
+    {% endif %}
 {% endfor %}
 
 {% set recipients = settings.supportNotificationRecipients %}
@@ -57,6 +65,9 @@
     name: 'attachmentVolumeUid',
     value: settings.attachmentVolumeUid,
     options: volumeOptions,
+    warning: attachmentVolumeIsPublic
+        ? 'This volume has public URLs, so anyone with a file’s address can download it without signing in or holding a guest link. Pigeon only ever links to its own checked download URL, but the files are still reachable directly. Choose a volume without public URLs for private conversations.'|t('pigeon')
+        : null,
 }) }}
 
 {{ forms.textField({

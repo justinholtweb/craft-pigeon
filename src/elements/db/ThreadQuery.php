@@ -2,9 +2,13 @@
 
 namespace justinholtweb\pigeon\elements\db;
 
+use Craft;
+use craft\controllers\ElementIndexesController;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use justinholtweb\pigeon\elements\Thread;
+use justinholtweb\pigeon\enums\ThreadType;
+use justinholtweb\pigeon\Plugin;
 
 /**
  * @method Thread[] all($db = null)
@@ -83,6 +87,10 @@ class ThreadQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('pigeon_threads.type', $this->type));
         }
 
+        if ($this->hidesDirectThreads()) {
+            $this->subQuery->andWhere(['not', ['pigeon_threads.type' => ThreadType::Direct->value]]);
+        }
+
         if ($this->threadStatus !== null) {
             $this->subQuery->andWhere(Db::parseParam('pigeon_threads.threadStatus', $this->threadStatus));
         }
@@ -117,6 +125,27 @@ class ThreadQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * Whether this query is the control panel's element index — listing, counting, exporting or
+     * acting on threads — for someone who may not read user-to-user conversations.
+     *
+     * The Direct source and the narrowed source criteria only change what the index *shows*: Craft
+     * applies a native source's criteria in the browser, which posts them back, so leaving them out
+     * listed every thread. This is the check. It is scoped to the element index controller because
+     * guests, the front end and queue jobs query threads too — a queue run started from a CP page
+     * must not be filtered by whoever's page started it.
+     */
+    private function hidesDirectThreads(): bool
+    {
+        if (!Craft::$app->controller instanceof ElementIndexesController) {
+            return false;
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        return $user !== null && !$user->can(Plugin::PERMISSION_VIEW_DIRECT);
     }
 
     protected function statusCondition(string $status): mixed

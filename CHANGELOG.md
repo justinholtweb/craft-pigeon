@@ -1,5 +1,41 @@
 # Release Notes for Pigeon
 
+## 5.0.4 - 2026-10-05
+
+> {warning} Staff with **Access Pigeon** no longer see user-to-user conversations. Grant the new
+> **View private user-to-user conversations** permission to anyone who should. Attachments are now
+> stored in `pigeon/<thread UID>/` inside the attachment volume and downloaded through Pigeon,
+> which checks who is asking. Files uploaded before 5.0.4 stay in the volume root. If that volume
+> has public URLs, those files are still public; move them or the volume somewhere private. If your
+> own templates link attachments with `att.asset.url`, switch to
+> `actionUrl('pigeon/attachments/download', { id: att.id, access: token })` (drop `access` for
+> signed-in users).
+
+### Security
+- The guest rate limit was keyed on the visitor's address *and* the email they typed, so changing
+  the email on every request was never limited. Every request sent a link email to the typed
+  address with the visitor's subject in it. Guest threads and link requests now draw on three
+  budgets: per client (the connecting address, with forwarded headers trusted only behind
+  configured proxies, and IPv6 grouped by /64), per recipient, and site-wide. The guest-link email
+  no longer includes the subject the visitor typed.
+- Attachments were linked by their asset URL, so on a volume with public URLs a guest's upload was
+  a public file. Links now go through `pigeon/attachments/download`, which serves a file to the
+  guest holding that thread's link, a participant, or staff. Internal notes are staff-only, and
+  files are always sent as downloads, never shown inline. Each thread's files go in a folder of
+  their own. The settings screen warns when the attachment volume has public URLs.
+- Anyone with **Access Pigeon** could read two users' private conversation in the control panel,
+  including in the inbox listing, and opening any thread silently made the reader a participant.
+  User-to-user threads now need **View private user-to-user conversations** to read, list, reply
+  to, assign or change. Opening a thread only marks it read for someone already in it; staff join
+  a thread by replying, adding a note, or being assigned.
+- Guest forms redirected to the `Referer` header. They now go back to the page the form was on,
+  or to a hashed `redirect` input.
+
+### Changed
+- The control panel conversation view and the inbox widget use Craft's own CSS variables, status
+  labels and form fields instead of hard-coded colours and inline styles.
+- `helpers\RateLimiter` is replaced by `helpers\RateLimit`.
+
 ## 5.0.3 - 2026-08-26
 
 ### Fixed

@@ -11,3 +11,6 @@ parameters:
         - tests/_craft
         - tests/_output
         - tests/_support
+        # Harness scripts run against a live Craft in plugin-testing, with globals and closures
+        # phpstan can't follow; the Codeception suite under tests/unit is what's analysed.
+        - tests/integration

@@ -22,7 +22,7 @@ class MessagesServiceTest extends PigeonTestCase
             'authorName' => 'Guest',
         ]);
 
-        self::assertNotNull($message->id);
+        self::assertGreaterThan(0, $message->id);
         self::assertSame('Hello there', $message->body, 'Body should be trimmed');
         self::assertSame('guest@example.test', $message->authorEmail, 'Author email should be lower-cased');
         self::assertFalse((bool)$message->isInternalNote);
@@ -43,7 +43,7 @@ class MessagesServiceTest extends PigeonTestCase
 
         $message = $this->plugin()->messages->post($thread, ['body' => '', 'isSystem' => true]);
 
-        self::assertNotNull($message->id);
+        self::assertGreaterThan(0, $message->id);
         self::assertTrue((bool)$message->isSystem);
     }
 

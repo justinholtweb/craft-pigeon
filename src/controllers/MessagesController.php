@@ -41,7 +41,7 @@ class MessagesController extends Controller
         }
 
         $body = trim((string)$request->getBodyParam('body'));
-        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'));
+        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'), $thread);
 
         if ($body === '' && !$assetIds) {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'Your message cannot be empty.'));

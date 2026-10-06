@@ -90,13 +90,12 @@ class PluginTest extends PigeonTestCase
 
     public function testSiteTemplateRootIsRegistered(): void
     {
-        $view = Craft::$app->getView();
+        Craft::$app->getView();
         $event = new \craft\events\RegisterTemplateRootsEvent(['roots' => []]);
         \yii\base\Event::trigger(\craft\web\View::class, \craft\web\View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, $event);
 
         self::assertArrayHasKey('pigeon', $event->roots);
         self::assertDirectoryExists($event->roots['pigeon']);
-        self::assertNotNull($view);
     }
 
     public function testCpAndSiteRoutesAreRegistered(): void

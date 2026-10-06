@@ -27,7 +27,7 @@ class EnumsTest extends Unit
 
     public function testThreadStatusTryFromRejectsUnknown(): void
     {
-        self::assertNull(ThreadStatus::tryFrom('archived'));
+        self::assertNull(ThreadStatus::tryFrom('archived')); // @phpstan-ignore staticMethod.alreadyNarrowedType (asserting the runtime enum, not the type)
         self::assertSame(ThreadStatus::Closed, ThreadStatus::tryFrom('closed'));
     }
 
@@ -36,7 +36,7 @@ class EnumsTest extends Unit
         self::assertSame(['support', 'direct'], ThreadType::values());
         self::assertSame('Support', ThreadType::Support->label());
         self::assertSame('Direct', ThreadType::Direct->label());
-        self::assertNull(ThreadType::tryFrom('broadcast'));
+        self::assertNull(ThreadType::tryFrom('broadcast')); // @phpstan-ignore staticMethod.alreadyNarrowedType (asserting the runtime enum, not the type)
     }
 
     public function testParticipantRoleValues(): void

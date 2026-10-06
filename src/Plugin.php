@@ -5,6 +5,7 @@ namespace justinholtweb\pigeon;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\elements\User;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -16,6 +17,7 @@ use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
 use justinholtweb\pigeon\elements\Thread;
+use justinholtweb\pigeon\enums\ThreadType;
 use justinholtweb\pigeon\models\Settings;
 use justinholtweb\pigeon\services\Messages;
 use justinholtweb\pigeon\services\Notifications;
@@ -40,6 +42,24 @@ class Plugin extends BasePlugin
     public string $schemaVersion = '1.0.0';
     public bool $hasCpSettings = true;
     public bool $hasCpSection = true;
+
+    /**
+     * Read user-to-user ("direct") threads in the control panel. Support threads are the inbox;
+     * direct threads are two users' private conversation, so reading the inbox doesn't imply it.
+     */
+    public const PERMISSION_VIEW_DIRECT = 'pigeon:viewDirectThreads';
+
+    /**
+     * Whether `$user` may read `$thread` in the control panel inbox.
+     */
+    public static function canViewInCp(User $user, Thread $thread): bool
+    {
+        if (!$user->can('pigeon:accessPlugin')) {
+            return false;
+        }
+
+        return $thread->type !== ThreadType::Direct->value || $user->can(self::PERMISSION_VIEW_DIRECT);
+    }
 
     public static function config(): array
     {
@@ -194,6 +214,11 @@ class Plugin extends BasePlugin
                     'permissions' => [
                         'pigeon:accessPlugin' => [
                             'label' => Craft::t('pigeon', 'Access Pigeon'),
+                            'nested' => [
+                                self::PERMISSION_VIEW_DIRECT => [
+                                    'label' => Craft::t('pigeon', 'View private user-to-user conversations'),
+                                ],
+                            ],
                         ],
                         'pigeon:manageThreads' => [
                             'label' => Craft::t('pigeon', 'Manage threads (view, reply, status)'),

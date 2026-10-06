@@ -8,7 +8,7 @@ use craft\web\UploadedFile;
 use justinholtweb\pigeon\elements\Thread;
 use justinholtweb\pigeon\enums\ThreadStatus;
 use justinholtweb\pigeon\helpers\AttachmentHelper;
-use justinholtweb\pigeon\helpers\RateLimiter;
+use justinholtweb\pigeon\helpers\RateLimit;
 use justinholtweb\pigeon\Plugin;
 use justinholtweb\pigeon\records\ParticipantRecord;
 use yii\web\BadRequestHttpException;
@@ -58,7 +58,7 @@ class GuestController extends Controller
         $request = Craft::$app->getRequest();
         if ($this->_isHoneypotTripped()) {
             // Silently pretend success.
-            return $this->redirect($request->getReferrer() ?: 'pigeon');
+            return $this->_back();
         }
 
         $token = (string)$request->getRequiredBodyParam('token');
@@ -67,7 +67,7 @@ class GuestController extends Controller
             throw new BadRequestHttpException('Invalid or expired link.');
         }
 
-        if (!$this->_passesRateLimit($participant->email ?: 'guest')) {
+        if (!RateLimit::allowWindow('guest-reply', ...$this->_budget()) || !RateLimit::allowForWindow('guest-reply', (string)$participant->id, ...$this->_budget())) {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'You are sending messages too quickly. Please wait a moment.'));
             return $this->redirect("pigeon/t/{$token}");
         }
@@ -78,7 +78,7 @@ class GuestController extends Controller
         }
 
         $body = trim((string)$request->getBodyParam('body'));
-        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'));
+        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'), $thread);
 
         if ($body === '' && !$assetIds) {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'Your message cannot be empty.'));
@@ -116,7 +116,7 @@ class GuestController extends Controller
 
         $request = Craft::$app->getRequest();
         if ($this->_isHoneypotTripped()) {
-            return $this->redirect($request->getReferrer() ?: '/');
+            return $this->_back();
         }
 
         $email = trim((string)$request->getBodyParam('email'));
@@ -126,23 +126,23 @@ class GuestController extends Controller
 
         if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'A valid email address is required.'));
-            return $this->redirect($request->getReferrer() ?: '/');
+            return $this->_back();
         }
 
         if ($body === '') {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'Your message cannot be empty.'));
-            return $this->redirect($request->getReferrer() ?: '/');
+            return $this->_back();
         }
 
-        if (!$this->_passesRateLimit($email)) {
+        if (!$this->_allowMail($email)) {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'You are sending messages too quickly. Please wait a moment.'));
-            return $this->redirect($request->getReferrer() ?: '/');
+            return $this->_back();
         }
 
         $threadsService = Plugin::getInstance()->threads;
         $thread = $threadsService->createSupportThread($subject, $email, $name);
 
-        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'));
+        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'), $thread);
 
         Plugin::getInstance()->messages->post($thread, [
             'body' => $body,
@@ -160,7 +160,7 @@ class GuestController extends Controller
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('pigeon', 'Thanks! We’ve received your message.'));
-        return $this->redirect($request->getReferrer() ?: '/');
+        return $this->_back();
     }
 
     /**
@@ -172,12 +172,12 @@ class GuestController extends Controller
 
         $request = Craft::$app->getRequest();
         if ($this->_isHoneypotTripped()) {
-            return $this->redirect($request->getReferrer() ?: '/');
+            return $this->_back();
         }
 
         $email = trim((string)$request->getBodyParam('email'));
 
-        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL) && $this->_passesRateLimit($email)) {
+        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL) && $this->_allowMail($email)) {
             $guests = Plugin::getInstance()->participants->getActiveGuestsByEmail($email);
             foreach ($guests as $participant) {
                 $thread = Plugin::getInstance()->threads->getById($participant->threadId);
@@ -190,7 +190,7 @@ class GuestController extends Controller
 
         // Always report success to avoid leaking which emails exist.
         Craft::$app->getSession()->setNotice(Craft::t('pigeon', 'If we found a matching conversation, a new link is on its way.'));
-        return $this->redirect($request->getReferrer() ?: '/');
+        return $this->_back();
     }
 
     private function _isHoneypotTripped(): bool
@@ -202,15 +202,52 @@ class GuestController extends Controller
         return trim((string)Craft::$app->getRequest()->getBodyParam($settings->honeypotField)) !== '';
     }
 
-    private function _passesRateLimit(string $identifier): bool
+    /**
+     * Whether this request may send a guest-link email to `$email`.
+     *
+     * Every guest thread and every link request sends an email to an address the visitor typed,
+     * so this is three budgets, not one: per client, per recipient, and site-wide. Until 5.0.4 the
+     * only budget was keyed on address *and* email together, so a client that changed the email
+     * on every request was never throttled — and the site mailed whoever it was told to.
+     */
+    private function _allowMail(string $email): bool
+    {
+        return RateLimit::allowWindow('guest-mail', ...$this->_budget())
+            && RateLimit::allowForWindow('guest-mail-to', mb_strtolower($email), ...$this->_budget());
+    }
+
+    /**
+     * @return array{int, int} the configured budget: requests, and the window in seconds
+     */
+    private function _budget(): array
     {
         $settings = Plugin::getInstance()->getSettings();
-        $ip = Craft::$app->getRequest()->getUserIP() ?? 'unknown';
-        return RateLimiter::hit(
-            "guest:{$ip}:{$identifier}",
-            $settings->rateLimitMaxMessages,
-            $settings->rateLimitWindowSeconds,
-        );
+
+        return [$settings->rateLimitMaxMessages, $settings->rateLimitWindowSeconds];
+    }
+
+    /**
+     * Back to where the form was, on this site.
+     *
+     * A hashed `redirect` input wins. Otherwise the page the form posted to, when it posted to
+     * itself; the site's home page when it posted straight to an action URL. Never the Referer:
+     * that is whatever site sent the browser here.
+     */
+    private function _back(): Response
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($request->getValidatedBodyParam('redirect') !== null) {
+            return $this->redirectToPostedUrl();
+        }
+
+        $trigger = Craft::$app->getConfig()->getGeneral()->actionTrigger;
+
+        if (str_starts_with($request->getPathInfo(), $trigger . '/')) {
+            return $this->redirect(\craft\helpers\UrlHelper::siteUrl());
+        }
+
+        return $this->redirect($request->getUrl());
     }
 
     private function _sendGuestLink(Thread $thread, ?string $email, ?string $name, string $token): void
@@ -229,7 +266,9 @@ class GuestController extends Controller
 
         $message = Craft::$app->getMailer()->compose()
             ->setTo($name ? [$email => $name] : $email)
-            ->setSubject(Craft::t('pigeon', 'Your conversation: {subject}', ['subject' => $thread->title]))
+            // Not the thread's subject: a visitor types that, and anything a visitor types into an
+            // email the site sends to an address they chose is a phishing line in the site's name.
+            ->setSubject(Craft::t('pigeon', 'Your conversation with {site}', ['site' => Craft::$app->getSystemName()]))
             ->setHtmlBody($html)
             ->setTextBody($text);
 

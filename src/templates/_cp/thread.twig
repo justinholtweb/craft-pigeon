@@ -6,26 +6,29 @@
 
 {% set currentUserId = currentUser.id %}
 
+{% do view.registerAssetBundle('justinholtweb\\pigeon\\web\\assets\\cp\\CpAsset') %}
+
 {% block content %}
     <div id="pigeon-conversation">
         {% for message in messages %}
             {% set isMine = message.authorUserId and message.authorUserId == currentUserId %}
             {% set author = message.authorName ?: (message.authorEmail ?: 'System'|t('pigeon')) %}
-            <div class="pigeon-message{{ message.isInternalNote ? ' pigeon-note' : '' }}{{ isMine ? ' pigeon-mine' : '' }}"
-                 style="border:1px solid {{ message.isInternalNote ? '#f0d27a' : '#e3e5e8' }}; background:{{ message.isInternalNote ? '#fdf6e3' : '#fff' }}; border-radius:8px; padding:14px 16px; margin-bottom:12px;">
-                <div class="light smalltext" style="margin-bottom:6px;">
+            <div class="pigeon-message{{ message.isInternalNote ? ' pigeon-note' : '' }}{{ isMine ? ' pigeon-mine' : '' }}">
+                <div class="pigeon-message-meta light smalltext">
                     <strong>{{ author }}</strong>
-                    {% if message.isInternalNote %}<span class="pigeon-badge" style="background:#caa83a; color:#fff; padding:1px 6px; border-radius:3px; font-size:11px; margin-left:6px;">{{ 'Internal note'|t('pigeon') }}</span>{% endif %}
-                    · {{ message.dateCreated|datetime('short') }}
+                    {% if message.isInternalNote %}
+                        <span class="status-label amber"><span class="status amber" aria-hidden="true"></span> <span class="status-label-text">{{ 'Internal note'|t('pigeon') }}</span></span>
+                    {% endif %}
+                    <span>{{ message.dateCreated|datetime('short') }}</span>
                 </div>
-                <div style="white-space:pre-wrap; line-height:1.5;">{{ message.body|nl2br }}</div>
+                <div class="pigeon-message-body">{{ message.body }}</div>
                 {% set attachments = message.attachments %}
                 {% if attachments|length %}
-                    <ul style="margin:10px 0 0; padding-left:18px;">
+                    <ul class="pigeon-attachments">
                         {% for att in attachments %}
                             <li>
-                                {% if att.asset and att.asset.url %}
-                                    <a href="{{ att.asset.url }}" target="_blank" rel="noopener">{{ att.filename ?: att.asset.filename }}</a>
+                                {% if att.asset %}
+                                    <a href="{{ actionUrl('pigeon/attachments/download', { id: att.id }) }}">{{ att.filename ?: att.asset.filename }}</a>
                                 {% else %}
                                     {{ att.filename ?: 'Attachment'|t('pigeon') }}
                                 {% endif %}
@@ -48,14 +51,22 @@
             {{ hiddenInput('threadId', thread.id) }}
             {{ redirectInput('pigeon/threads/' ~ thread.id) }}
 
-            {{ forms.textarea({
+            {{ forms.textareaField({
+                label: 'Reply'|t('pigeon'),
+                id: 'pigeon-reply',
                 name: 'body',
                 rows: 4,
                 placeholder: 'Write a reply…'|t('pigeon'),
             }) }}
 
-            <div class="flex" style="margin-top:10px; align-items:center; gap:16px;">
-                <input type="file" name="attachments[]" multiple>
+            {{ forms.fileField({
+                label: 'Attachments'|t('pigeon'),
+                id: 'pigeon-attachments',
+                name: 'attachments[]',
+                inputAttributes: { multiple: true },
+            }) }}
+
+            <div class="flex pigeon-compose-actions">
                 {{ forms.checkbox({
                     label: 'Internal note (staff only)'|t('pigeon'),
                     name: 'isInternalNote',

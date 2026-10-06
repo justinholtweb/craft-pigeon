@@ -7,12 +7,13 @@ use craft\base\Element;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\User;
+use craft\enums\Color;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
-use craft\enums\Color;
 use justinholtweb\pigeon\elements\db\ThreadQuery;
 use justinholtweb\pigeon\enums\ThreadStatus;
 use justinholtweb\pigeon\enums\ThreadType;
+use justinholtweb\pigeon\Plugin;
 use justinholtweb\pigeon\records\ThreadRecord;
 use yii\base\InvalidConfigException;
 
@@ -86,7 +87,15 @@ class Thread extends Element
 
     public static function defineSources(?string $context = null): array
     {
-        return [
+        $user = Craft::$app->getUser()->getIdentity();
+        $canSeeDirect = $user === null || $user->can(Plugin::PERMISSION_VIEW_DIRECT);
+
+        // Without the direct-thread permission every source is narrowed to support threads, and
+        // the Direct source isn't offered. Done here rather than in ThreadQuery, which also serves
+        // guests, the front end and queue jobs — where the signed-in CP user is nobody's business.
+        $support = $canSeeDirect ? [] : ['type' => ThreadType::Support->value];
+
+        $sources = [
             [
                 'key' => '*',
                 'label' => Craft::t('pigeon', 'All threads'),
@@ -119,6 +128,23 @@ class Thread extends Element
                 'criteria' => ['type' => ThreadType::Direct->value],
             ],
         ];
+
+        if ($canSeeDirect) {
+            return $sources;
+        }
+
+        $narrowed = [];
+        foreach ($sources as $source) {
+            if (($source['key'] ?? null) === 'type:direct') {
+                continue;
+            }
+            if (isset($source['key'])) {
+                $source['criteria'] = array_merge($source['criteria'] ?? [], $support);
+            }
+            $narrowed[] = $source;
+        }
+
+        return $narrowed;
     }
 
     protected static function defineTableAttributes(): array

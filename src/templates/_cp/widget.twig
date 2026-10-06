@@ -1,10 +1,11 @@
+{% do view.registerAssetBundle('justinholtweb\\pigeon\\web\\assets\\cp\\CpAsset') %}
 {% if count > 0 %}
-    <p style="margin:0 0 12px;">
+    <p class="pigeon-widget-summary">
         <span class="status orange"></span>
         {{ '{count} thread(s) awaiting a reply'|t('pigeon', { count: count }) }}
     </p>
 {% else %}
-    <p class="light" style="margin:0 0 12px;">{{ 'Nothing waiting on a reply. 🎉'|t('pigeon') }}</p>
+    <p class="light pigeon-widget-summary">{{ 'Nothing waiting on a reply. 🎉'|t('pigeon') }}</p>
 {% endif %}
 
 {% if threads|length %}
@@ -25,4 +26,4 @@
     </table>
 {% endif %}
 
-<p style="margin-top:12px;"><a class="go" href="{{ url('pigeon/threads') }}">{{ 'Open inbox'|t('pigeon') }}</a></p>
+<p class="pigeon-widget-more"><a class="go" href="{{ url('pigeon/threads') }}">{{ 'Open inbox'|t('pigeon') }}</a></p>

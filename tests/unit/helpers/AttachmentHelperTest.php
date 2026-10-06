@@ -10,7 +10,7 @@ class AttachmentHelperTest extends PigeonTestCase
 {
     public function testNoFilesReturnsNothing(): void
     {
-        self::assertSame([], AttachmentHelper::saveUploads([]));
+        self::assertSame([], AttachmentHelper::saveUploads([], $this->createGuestThread()));
     }
 
     public function testUploadsAreIgnoredWhenNoVolumeIsConfigured(): void
@@ -28,7 +28,7 @@ class AttachmentHelperTest extends PigeonTestCase
                 'error' => UPLOAD_ERR_OK,
             ]);
 
-            self::assertSame([], AttachmentHelper::saveUploads([$file]));
+            self::assertSame([], AttachmentHelper::saveUploads([$file], $this->createGuestThread()));
         } finally {
             $settings->attachmentVolumeUid = $original;
         }
@@ -49,7 +49,7 @@ class AttachmentHelperTest extends PigeonTestCase
                 'error' => UPLOAD_ERR_OK,
             ]);
 
-            self::assertSame([], AttachmentHelper::saveUploads([$file]));
+            self::assertSame([], AttachmentHelper::saveUploads([$file], $this->createGuestThread()));
         } finally {
             $settings->attachmentVolumeUid = $original;
         }

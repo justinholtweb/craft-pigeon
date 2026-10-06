@@ -6,7 +6,7 @@
     <h1>{{ thread.title }}</h1>
     <p class="pg-status">{{ thread.threadStatus }}</p>
 
-    {% include 'pigeon/_front/_messages' with { messages: messages, currentUserId: null } only %}
+    {% include 'pigeon/_front/_messages' with { messages: messages, currentUserId: null, token: token } only %}
 
     {% if thread.threadStatus != 'closed' %}
         <div class="pg-card">

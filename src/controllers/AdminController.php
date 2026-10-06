@@ -51,12 +51,19 @@ class AdminController extends Controller
             throw new NotFoundHttpException('Thread not found.');
         }
 
+        $user = Craft::$app->getUser()->getIdentity();
+        $this->_requireCanView($thread);
+
         $messages = Plugin::getInstance()->messages->getForThread($threadId, includeInternal: true);
 
-        // Mark read for the viewing staff member.
-        $user = Craft::$app->getUser()->getIdentity();
-        $participant = Plugin::getInstance()->participants->ensureUser($threadId, $user->id, \justinholtweb\pigeon\enums\ParticipantRole::Admin->value);
-        Plugin::getInstance()->participants->markRead($participant);
+        // Reading a thread marks it read for a staff member who is already in it. It no longer
+        // *adds* them: until 5.0.4 merely opening a thread made the reader an Admin participant,
+        // subscribing them to it — on a GET. Staff join a thread by replying, adding a note, or
+        // being assigned.
+        $participant = Plugin::getInstance()->participants->getForUser($threadId, $user->id);
+        if ($participant) {
+            Plugin::getInstance()->participants->markRead($participant);
+        }
 
         $staffOptions = $this->_staffOptions();
 
@@ -78,7 +85,7 @@ class AdminController extends Controller
         $body = trim((string)Craft::$app->getRequest()->getBodyParam('body'));
         $isNote = (bool)Craft::$app->getRequest()->getBodyParam('isInternalNote');
 
-        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'));
+        $assetIds = AttachmentHelper::saveUploads(UploadedFile::getInstancesByName('attachments'), $thread);
 
         if ($body === '' && !$assetIds) {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'Message cannot be empty.'));
@@ -141,7 +148,19 @@ class AdminController extends Controller
         if (!$thread) {
             throw new NotFoundHttpException('Thread not found.');
         }
+        $this->_requireCanView($thread);
         return $thread;
+    }
+
+    /**
+     * Inbox access covers support threads. A direct thread is two users' private conversation and
+     * needs its own permission — for reading it, and for replying, assigning or changing it.
+     */
+    private function _requireCanView(Thread $thread): void
+    {
+        if (!Plugin::canViewInCp(Craft::$app->getUser()->getIdentity(), $thread)) {
+            throw new ForbiddenHttpException('You can’t view this conversation.');
+        }
     }
 
     /**

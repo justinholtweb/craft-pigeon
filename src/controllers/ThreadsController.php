@@ -66,7 +66,7 @@ class ThreadsController extends Controller
 
         if ($body === '') {
             Craft::$app->getSession()->setError(Craft::t('pigeon', 'Your message cannot be empty.'));
-            return $this->redirect($request->getReferrer() ?: 'pigeon/threads');
+            return $this->redirect('pigeon/threads');
         }
 
         $threadsService = Plugin::getInstance()->threads;
@@ -78,7 +78,7 @@ class ThreadsController extends Controller
             $recipientIds = $this->_resolveRecipients($request->getBodyParam('recipients', ''));
             if (!$recipientIds) {
                 Craft::$app->getSession()->setError(Craft::t('pigeon', 'Please choose at least one valid recipient.'));
-                return $this->redirect($request->getReferrer() ?: 'pigeon/threads');
+                return $this->redirect('pigeon/threads');
             }
             $thread = $threadsService->createDirectThread($subject, $user->id, $recipientIds);
         } else {

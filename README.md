@@ -89,17 +89,35 @@ The guest is emailed a private link to follow the conversation; your support rec
 | `pigeon/threads/start` | user | Start a support or direct thread |
 | `pigeon/messages/reply` | user | Reply to a thread you're in |
 | `pigeon/admin/reply` · `/status` · `/assign` | staff | Control-panel actions |
+| `pigeon/attachments/download` | any (checked) | An attachment, for whoever may read its message |
 
 ## Permissions
 
-- **Access Pigeon** (`pigeon:accessPlugin`) — read the inbox.
+- **Access Pigeon** (`pigeon:accessPlugin`) — read the support inbox.
+  - **View private user-to-user conversations** (`pigeon:viewDirectThreads`) — read, list and act
+    on direct threads in the control panel. Without it they are not listed, and opening one is
+    refused. Participants always see their own threads on the front end.
 - **Manage threads** (`pigeon:manageThreads`) — reply, add notes, change status.
   - **Assign threads** (`pigeon:assignThreads`).
 - **Manage settings** (`pigeon:manageSettings`).
 
 ## Anti-spam
 
-Guest forms are protected by a per-IP fixed-window rate limit and an optional honeypot field, both configurable in settings.
+Guest forms are protected by an optional honeypot field and rate limits configured in settings.
+Starting a thread or requesting a link sends an email to an address the visitor typed, so each
+draws on three budgets: per client, per recipient, and a site-wide ceiling of 20 times the
+per-client limit. The client is the connecting address. `X-Forwarded-For` is only believed when
+`trustedHosts` names your proxies, and IPv6 is grouped by /64. The guest-link email never includes
+the subject the visitor typed.
+
+## Attachments
+
+Files are stored as assets in the attachment volume, in a folder per thread
+(`pigeon/<thread UID>/`), and served through `pigeon/attachments/download`. That action checks
+access: a guest needs their link's token (`access` param), a user must be in the thread, and staff
+need inbox access. Internal-note files are staff-only, and files are always sent as downloads.
+Pick a volume **without** public URLs: on a public volume the files are also reachable directly,
+and the settings screen warns you.
 
 ## Development
 
