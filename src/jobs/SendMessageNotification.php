@@ -31,7 +31,7 @@ class SendMessageNotification extends BaseJob
             return;
         }
 
-        [$toEmail, $toName, $link, $isStaff] = $this->resolveRecipient($thread);
+        [$toEmail, $toName, $link, $isStaff, $participant] = $this->resolveRecipient($thread);
         if (!$toEmail) {
             return;
         }
@@ -53,6 +53,8 @@ class SendMessageNotification extends BaseJob
             'recipientName' => $toName,
             'link' => $link,
             'isStaff' => $isStaff,
+            // Whether answering the email itself posts the reply (reply by email is on).
+            'replyByEmail' => Plugin::getInstance()->inbound->replyAddressFor($participant) !== null,
         ];
 
         $html = $view->renderTemplate('pigeon/_emails/new-message', $vars, View::TEMPLATE_MODE_CP);
@@ -71,6 +73,10 @@ class SendMessageNotification extends BaseJob
                 : $settings->fromEmail);
         }
 
+        // Reply by email: the participant's own reply address, or the plain mailbox for a staff
+        // alert. Adds nothing while the feature is off.
+        Plugin::getInstance()->inbound->prepareOutgoing($composed, $thread, $participant);
+
         $composed->send();
     }
 
@@ -80,7 +86,7 @@ class SendMessageNotification extends BaseJob
     }
 
     /**
-     * @return array{0:?string,1:?string,2:?string,3:bool} [email, name, link, isStaff]
+     * @return array{0:?string,1:?string,2:?string,3:bool,4:?ParticipantRecord} [email, name, link, isStaff, participant]
      */
     private function resolveRecipient(Thread $thread): array
     {
@@ -91,12 +97,13 @@ class SendMessageNotification extends BaseJob
                 null,
                 UrlHelper::cpUrl("pigeon/threads/{$thread->id}"),
                 true,
+                null,
             ];
         }
 
         $participant = $this->participantId ? ParticipantRecord::findOne($this->participantId) : null;
         if (!$participant) {
-            return [null, null, null, false];
+            return [null, null, null, false, null];
         }
 
         // Logged-in user participant → front-end thread page (CP for staff).
@@ -112,6 +119,7 @@ class SendMessageNotification extends BaseJob
                 $participant->name ?: ($user ? (string)$user : null),
                 $link,
                 $isStaff,
+                $participant,
             ];
         }
 
@@ -123,6 +131,7 @@ class SendMessageNotification extends BaseJob
             $participant->name,
             UrlHelper::siteUrl("pigeon/t/{$token}"),
             false,
+            $participant,
         ];
     }
 }

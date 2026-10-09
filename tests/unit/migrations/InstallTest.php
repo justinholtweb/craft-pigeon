@@ -37,10 +37,15 @@ class InstallTest extends TestCase
             ]],
             ['pigeon_participants', [
                 'id', 'threadId', 'userId', 'email', 'name', 'role', 'tokenHash',
-                'tokenExpiresAt', 'lastReadMessageId', 'lastReadAt', 'notify', 'leftAt', 'uid',
+                'tokenExpiresAt', 'replyToken', 'lastReadMessageId', 'lastReadAt', 'notify', 'leftAt', 'uid',
             ]],
             ['pigeon_attachments', ['id', 'messageId', 'assetId', 'filename', 'kind', 'size', 'uid']],
             ['pigeon_message_reads', ['id', 'messageId', 'participantId', 'readAt', 'uid']],
+            ['pigeon_inbound', [
+                'id', 'provider', 'messageHash', 'messageId', 'fromEmail', 'subject', 'status', 'reason',
+                'payload', 'threadId', 'postedMessageId', 'attempts', 'dateProcessed', 'uid',
+            ]],
+            ['pigeon_email_threads', ['id', 'threadId', 'participantId', 'messageHash', 'messageId', 'direction', 'uid']],
         ];
     }
 
@@ -78,6 +83,9 @@ class InstallTest extends TestCase
             'participants per user' => ['pigeon_participants', ['threadId', 'userId']],
             'participants per email' => ['pigeon_participants', ['threadId', 'email']],
             'participant token' => ['pigeon_participants', ['tokenHash']],
+            'participant reply token' => ['pigeon_participants', ['replyToken']],
+            'inbound dedupe' => ['pigeon_inbound', ['messageHash']],
+            'email thread Message-ID' => ['pigeon_email_threads', ['messageHash']],
             'one receipt per message and participant' => ['pigeon_message_reads', ['messageId', 'participantId']],
         ];
     }

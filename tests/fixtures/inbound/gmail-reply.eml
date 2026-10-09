@@ -1,0 +1,46 @@
+Return-Path: <{{FROM}}>
+From: =?UTF-8?Q?Mar=C3=ADa_L=C3=B3pez?= <{{FROM_UPPER}}>
+To: "Messages" <messages+{{TOKEN}}@pigeon.example.com>
+Subject: =?UTF-8?B?UmU6IOKAnEludm9pY2Ugd3JvbmfigJ0=?=
+Date: Fri, 9 Oct 2026 10:15:00 +0200
+Message-ID: <{{MSGID}}>
+In-Reply-To: <pigeon.outbound-001@pigeon.example.com>
+References: <original-001@example.org> <pigeon.outbound-001@pigeon.example.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mixed-b1"
+
+--mixed-b1
+Content-Type: multipart/alternative; boundary="alt-b2"
+
+--alt-b2
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Thanks =E2=80=94 the invoice is still wrong after the fix.
+The total should be =E2=82=AC40, not =E2=82=AC400.
+
+On Thu, 8 Oct 2026 at 17:02, Messages <messages+{{TOKEN}}@pigeon.examp=
+le.com>
+wrote:
+> Hi Mar=C3=ADa, we have corrected the invoice.
+>
+> The team
+
+--alt-b2
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+PGRpdj5UaGFua3Mg4oCUIHRoZSBpbnZvaWNlIGlzIHN0aWxsIHdyb25nLjwvZGl2PjxkaXYgY2xh
+c3M9ImdtYWlsX3F1b3RlIj5PbiBUaHUgLi4uIHdyb3RlOjxibG9ja3F1b3RlPkhpPC9ibG9ja3F1
+b3RlPjwvZGl2Pg==
+
+--alt-b2--
+
+--mixed-b1
+Content-Type: image/png; name="screen.png"
+Content-Disposition: attachment; filename*=utf-8''r%C3%A9sum%C3%A9%20screen.png
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+
+--mixed-b1--

@@ -3,6 +3,7 @@
 namespace justinholtweb\pigeon\migrations;
 
 use craft\db\Migration;
+use justinholtweb\pigeon\services\Inbound;
 
 class Install extends Migration
 {
@@ -12,12 +13,17 @@ class Install extends Migration
         $this->_createIndexes();
         $this->_addForeignKeys();
 
+        // Reply by email: received emails and the Message-IDs Pigeon has sent and received.
+        Inbound::createTables($this);
+
         return true;
     }
 
     public function safeDown(): bool
     {
         // Drop in FK-dependency order (children first).
+        $this->dropTableIfExists(Inbound::TABLE_INBOUND);
+        $this->dropTableIfExists(Inbound::TABLE_EMAIL_THREADS);
         $this->dropTableIfExists('{{%pigeon_message_reads}}');
         $this->dropTableIfExists('{{%pigeon_attachments}}');
         $this->dropTableIfExists('{{%pigeon_participants}}');
@@ -72,6 +78,9 @@ class Install extends Migration
             'role' => $this->string(20)->notNull()->defaultValue('participant'),
             'tokenHash' => $this->string(64)->null(),
             'tokenExpiresAt' => $this->dateTime()->null(),
+            // The tag in this participant's reply address — `messages+<replyToken>@…`. Not the
+            // guest link token: that one is hashed and re-minted, this one is looked up as is.
+            'replyToken' => $this->char(32)->null(),
             'lastReadMessageId' => $this->integer()->null(),
             'lastReadAt' => $this->dateTime()->null(),
             'notify' => $this->boolean()->notNull()->defaultValue(true),
@@ -124,6 +133,7 @@ class Install extends Migration
         $this->createIndex(null, '{{%pigeon_participants}}', ['threadId', 'userId'], true);
         $this->createIndex(null, '{{%pigeon_participants}}', ['threadId', 'email'], true);
         $this->createIndex(null, '{{%pigeon_participants}}', ['tokenHash'], true);
+        $this->createIndex(null, '{{%pigeon_participants}}', ['replyToken'], true);
         $this->createIndex(null, '{{%pigeon_participants}}', ['userId']);
 
         // Attachments

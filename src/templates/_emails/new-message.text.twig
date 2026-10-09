@@ -13,3 +13,7 @@
 ----------------------------------------
 
 {{ 'View & reply:'|t('pigeon') }} {{ link }}
+{% if replyByEmail ?? false %}
+
+{{ 'Or reply to this email — your reply is added to the conversation.'|t('pigeon') }}
+{% endif %}

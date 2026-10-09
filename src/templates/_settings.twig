@@ -120,3 +120,152 @@
     name: 'enableHoneypot',
     on: settings.enableHoneypot,
 }) }}
+
+<hr>
+<h2 id="reply-by-email">{{ 'Reply by email'|t('pigeon') }}</h2>
+
+<div class="readable">
+    <p class="light">{{ 'Let people answer a conversation by replying to its notification email. Every email Pigeon sends a participant carries a reply address with a tag that belongs to them — messages+k3v9…@example.com — and that tag is how the reply finds its way back. A reply only posts if it comes from that participant’s own address and they could post the same message on the site or in the control panel. Quoted history and signatures are cut off, HTML is turned into text, and out-of-office replies, bounces and mailing lists are ignored. New conversations still start on the site.'|t('pigeon') }}</p>
+</div>
+
+{{ forms.lightswitchField({
+    label: 'Take replies by email'|t('pigeon'),
+    instructions: 'While this is off the webhooks answer 404 and nothing is added to outgoing email.'|t('pigeon'),
+    name: 'inboundEnabled',
+    on: settings.inboundEnabled,
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Reply mailbox'|t('pigeon'),
+    instructions: 'Where replies come back to, and the base of every reply address — `messages@example.com` becomes `messages+<tag>@example.com`. Your provider must deliver plus-addressed mail for it (all of the big ones do). An environment variable works too.'|t('pigeon'),
+    name: 'inboundAddress',
+    value: settings.inboundAddress,
+    suggestEnvVars: true,
+    errors: settings.getErrors('inboundAddress'),
+}) }}
+
+{{ forms.textField({
+    label: 'Emails one sender may send per hour'|t('pigeon'),
+    instructions: 'Zero is unlimited. The rest are dropped and logged — a mail loop with somebody else’s system is the usual reason this is ever reached.'|t('pigeon'),
+    name: 'inboundRateLimit',
+    value: settings.inboundRateLimit,
+    type: 'number',
+    size: 5,
+    errors: settings.getErrors('inboundRateLimit'),
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Keep attachments'|t('pigeon'),
+    instructions: 'Under the attachment rules above — the same volume, file types, size and count. A file whose content does not match its extension is refused, and staff see an internal note saying what was not kept.'|t('pigeon'),
+    name: 'inboundAttachments',
+    on: settings.inboundAttachments,
+}) }}
+
+{{ forms.textareaField({
+    label: 'Other addresses the site sends from'|t('pigeon'),
+    instructions: 'Mail *from* these is never taken in. The reply mailbox, the From email above and Craft’s own sending address are always included.'|t('pigeon'),
+    name: 'inboundIgnoreAddresses',
+    value: settings.inboundIgnoreAddresses,
+    rows: 2,
+    class: 'code',
+}) }}
+
+<h3>{{ 'Provider webhooks'|t('pigeon') }}</h3>
+
+<div class="readable">
+    <p class="light">{{ 'Point your provider’s inbound route at its URL below. Every delivery is verified before it is read, and a provider with nothing set here is refused outright. The answer goes back as soon as the email is stored; the reply is posted by a queue job.'|t('pigeon') }}</p>
+</div>
+
+<h4>Postmark</h4>
+<p class="light">{{ 'Postmark does not sign inbound mail; it authenticates with credentials in the webhook URL. Set a username and password here and enter the URL as https://username:password@… in Postmark.'|t('pigeon') }}</p>
+<p><code>{{ inboundWebhooks.postmark ?? '' }}</code></p>
+<div class="flex-fields">
+    {{ forms.autosuggestField({ label: 'Username'|t('pigeon'), name: 'postmarkUsername', value: settings.postmarkUsername, suggestEnvVars: true }) }}
+    {{ forms.autosuggestField({ label: 'Password'|t('pigeon'), name: 'postmarkPassword', value: settings.postmarkPassword, suggestEnvVars: true }) }}
+</div>
+
+<h4>Mailgun</h4>
+<p class="light">{{ 'A route with the forward() action to this URL. Every post is signed with your HTTP webhook signing key, and Pigeon refuses a stale timestamp or a token it has seen before.'|t('pigeon') }}</p>
+<p><code>{{ inboundWebhooks.mailgun ?? '' }}</code></p>
+{{ forms.autosuggestField({ label: 'HTTP webhook signing key'|t('pigeon'), name: 'mailgunSigningKey', value: settings.mailgunSigningKey, suggestEnvVars: true }) }}
+
+<h4>SendGrid</h4>
+<p class="light">{{ 'Inbound Parse to this URL. Preferred: attach a security policy with signature verification and paste its public key here — the webhook must then be served with PHP’s enable_post_data_reading = Off, because PHP otherwise discards the raw body the signature covers. Otherwise use basic-auth credentials in the Parse URL.'|t('pigeon') }}</p>
+<p><code>{{ inboundWebhooks.sendgrid ?? '' }}</code></p>
+{{ forms.autosuggestField({ label: 'Signature public key'|t('pigeon'), name: 'sendgridPublicKey', value: settings.sendgridPublicKey, suggestEnvVars: true }) }}
+<div class="flex-fields">
+    {{ forms.autosuggestField({ label: 'Username'|t('pigeon'), name: 'sendgridUsername', value: settings.sendgridUsername, suggestEnvVars: true }) }}
+    {{ forms.autosuggestField({ label: 'Password'|t('pigeon'), name: 'sendgridPassword', value: settings.sendgridPassword, suggestEnvVars: true }) }}
+</div>
+
+{{ forms.textField({
+    label: 'Replay window'|t('pigeon'),
+    instructions: 'Seconds either side of now a signed timestamp may be (Mailgun, SendGrid).'|t('pigeon'),
+    name: 'inboundReplayWindow',
+    value: settings.inboundReplayWindow,
+    type: 'number',
+    size: 5,
+    errors: settings.getErrors('inboundReplayWindow'),
+}) }}
+
+<h3>{{ 'A mailbox instead (IMAP)'|t('pigeon') }}</h3>
+
+{% if not imapAvailable %}
+    <div class="readable">
+        <p class="warning with-icon">{{ 'PHP’s imap extension is not installed on this server, so Pigeon cannot read a mailbox. A provider webhook above needs nothing extra, and so does piping mail to php craft pigeon/inbound/import - — or install the extension (PECL “imap” on PHP 8.4+).'|t('pigeon') }}</p>
+    </div>
+{% endif %}
+
+<p class="light">{{ 'Run php craft pigeon/inbound/poll from cron every few minutes. Unread messages are taken in and then marked read, or deleted.'|t('pigeon') }}</p>
+
+<div class="flex-fields">
+    {{ forms.autosuggestField({ label: 'Host'|t('pigeon'), name: 'imapHost', value: settings.imapHost, suggestEnvVars: true }) }}
+    {{ forms.textField({ label: 'Port'|t('pigeon'), name: 'imapPort', value: settings.imapPort, type: 'number', size: 6, errors: settings.getErrors('imapPort') }) }}
+    {{ forms.selectField({
+        label: 'Encryption'|t('pigeon'),
+        name: 'imapEncryption',
+        value: settings.imapEncryption,
+        options: [{ label: 'SSL', value: 'ssl' }, { label: 'STARTTLS', value: 'tls' }, { label: 'None'|t('pigeon'), value: 'none' }],
+    }) }}
+</div>
+<div class="flex-fields">
+    {{ forms.autosuggestField({ label: 'Username'|t('pigeon'), name: 'imapUsername', value: settings.imapUsername, suggestEnvVars: true }) }}
+    {{ forms.autosuggestField({ label: 'Password'|t('pigeon'), name: 'imapPassword', value: settings.imapPassword, suggestEnvVars: true }) }}
+    {{ forms.textField({ label: 'Mailbox'|t('pigeon'), name: 'imapMailbox', value: settings.imapMailbox }) }}
+</div>
+{{ forms.selectField({
+    label: 'Afterwards'|t('pigeon'),
+    name: 'imapAfterImport',
+    value: settings.imapAfterImport,
+    options: [
+        { label: 'Mark the message read'|t('pigeon'), value: 'seen' },
+        { label: 'Delete the message'|t('pigeon'), value: 'delete' },
+    ],
+}) }}
+
+{% if inboundRecent ?? [] %}
+    <h3>{{ 'The last emails received'|t('pigeon') }}</h3>
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th scope="col">{{ 'Received'|t('pigeon') }}</th>
+                <th scope="col">{{ 'From'|t('pigeon') }}</th>
+                <th scope="col">{{ 'Via'|t('pigeon') }}</th>
+                <th scope="col">{{ 'Became'|t('pigeon') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in inboundRecent %}
+                <tr>
+                    <td>{{ row.dateCreated|datetime('short') }}</td>
+                    <td>{{ row.fromEmail }}</td>
+                    <td>{{ row.provider }}</td>
+                    <td>
+                        {% if row.threadId %}<a href="{{ cpUrl('pigeon/threads/' ~ row.threadId) }}">{{ row.status }}</a>{% else %}{{ row.status }}{% endif %}
+                        {% if row.reason %}<span class="light">— {{ row.reason }}</span>{% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}

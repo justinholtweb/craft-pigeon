@@ -76,4 +76,48 @@ class AttachmentHelper
 
         return $assetIds;
     }
+
+    /**
+     * Store one file that is already on disk — an attachment that arrived by email and has been
+     * screened — as an asset in the thread's folder.
+     *
+     * The caller has checked the extension, size and count against the same settings
+     * {@see saveUploads()} reads; this only checks the volume is still there.
+     *
+     * @return int|null The asset ID, or null when there is no volume or the save failed.
+     */
+    public static function saveFile(string $path, string $filename, Thread $thread): ?int
+    {
+        $settings = Plugin::getInstance()->getSettings();
+        $volume = $settings->attachmentVolumeUid ? Craft::$app->getVolumes()->getVolumeByUid($settings->attachmentVolumeUid) : null;
+
+        if (!$volume || !is_file($path)) {
+            return null;
+        }
+
+        $folder = Craft::$app->getAssets()->ensureFolderByFullPathAndVolume(self::FOLDER . '/' . $thread->uid, $volume);
+
+        // Craft moves the temp file into the volume; hand it a copy so the caller's file is its own.
+        $temp = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . 'pigeon-' . bin2hex(random_bytes(8));
+
+        if (!@copy($path, $temp)) {
+            return null;
+        }
+
+        $asset = new Asset();
+        $asset->tempFilePath = $temp;
+        $asset->setFilename(\craft\helpers\Assets::prepareAssetName($filename));
+        $asset->newFolderId = $folder->id;
+        $asset->setVolumeId($volume->id);
+        $asset->avoidFilenameConflicts = true;
+        $asset->setScenario(Asset::SCENARIO_CREATE);
+
+        if (!Craft::$app->getElements()->saveElement($asset)) {
+            @unlink($temp);
+
+            return null;
+        }
+
+        return (int)$asset->id;
+    }
 }

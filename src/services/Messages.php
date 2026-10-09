@@ -32,6 +32,7 @@ class Messages extends Component
      *     isInternalNote?: bool,
      *     isSystem?: bool,
      *     attachmentAssetIds?: int[],
+     *     notify?: bool,
      * } $config
      */
     public function post(Thread $thread, array $config): MessageRecord
@@ -97,7 +98,9 @@ class Messages extends Component
         }
 
         // Fan out notifications (email + CP/on-site read models update implicitly).
-        Plugin::getInstance()->notifications->notifyNewMessage($thread, $message);
+        if ($config['notify'] ?? true) {
+            Plugin::getInstance()->notifications->notifyNewMessage($thread, $message);
+        }
 
         if ($this->hasEventHandlers(self::EVENT_AFTER_POST_MESSAGE)) {
             $event = new MessageEvent();

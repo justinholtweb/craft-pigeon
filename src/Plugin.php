@@ -19,6 +19,7 @@ use craft\web\View;
 use justinholtweb\pigeon\elements\Thread;
 use justinholtweb\pigeon\enums\ThreadType;
 use justinholtweb\pigeon\models\Settings;
+use justinholtweb\pigeon\services\Inbound;
 use justinholtweb\pigeon\services\Messages;
 use justinholtweb\pigeon\services\Notifications;
 use justinholtweb\pigeon\services\Participants;
@@ -34,12 +35,13 @@ use yii\base\Event;
  * @property Messages $messages
  * @property Participants $participants
  * @property Notifications $notifications
+ * @property Inbound $inbound
  * @property Settings $settings
  * @method Settings getSettings()
  */
 class Plugin extends BasePlugin
 {
-    public string $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.1.0';
     public bool $hasCpSettings = true;
     public bool $hasCpSection = true;
 
@@ -69,6 +71,7 @@ class Plugin extends BasePlugin
                 'messages' => Messages::class,
                 'participants' => Participants::class,
                 'notifications' => Notifications::class,
+                'inbound' => Inbound::class,
             ],
         ];
     }
@@ -124,6 +127,9 @@ class Plugin extends BasePlugin
         return Craft::$app->getView()->renderTemplate('pigeon/_settings', [
             'settings' => $this->getSettings(),
             'plugin' => $this,
+            'inboundWebhooks' => $this->inbound->webhookUrls(),
+            'imapAvailable' => Inbound::imapAvailable(),
+            'inboundRecent' => $this->inbound->recent(10),
         ]);
     }
 

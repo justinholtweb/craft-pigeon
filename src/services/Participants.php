@@ -10,6 +10,7 @@ use DateTime;
 use DateTimeZone;
 use justinholtweb\pigeon\elements\Thread;
 use justinholtweb\pigeon\enums\ParticipantRole;
+use justinholtweb\pigeon\mail\Addresses;
 use justinholtweb\pigeon\Plugin;
 use justinholtweb\pigeon\records\MessageReadRecord;
 use justinholtweb\pigeon\records\MessageRecord;
@@ -37,6 +38,7 @@ class Participants extends Component
         $record->name = $user ? (string)$user : null;
         $record->role = $role;
         $record->notify = $notify;
+        $record->replyToken = $this->newReplyToken();
         $record->save(false);
 
         return $record;
@@ -60,6 +62,7 @@ class Participants extends Component
         $record->name = $name;
         $record->role = $role;
         $record->notify = true;
+        $record->replyToken = $this->newReplyToken();
         $record->save(false);
 
         return $record;
@@ -206,6 +209,41 @@ class Participants extends Component
             ->unread()
             ->threadStatus(['open', 'pending'])
             ->count();
+    }
+
+    /**
+     * The tag in this participant's reply address, created if the row predates it.
+     */
+    public function replyTokenFor(ParticipantRecord $participant): string
+    {
+        if ($participant->replyToken === null || !Addresses::isToken($participant->replyToken)) {
+            $participant->replyToken = $this->newReplyToken();
+            $participant->save(false);
+        }
+
+        return $participant->replyToken;
+    }
+
+    /**
+     * The participant a reply address's tag belongs to — by equality, then compared again in
+     * constant time. Never a pattern match: a tag is a secret, not a search term.
+     */
+    public function findByReplyToken(string $token): ?ParticipantRecord
+    {
+        $token = strtolower($token);
+
+        if (!Addresses::isToken($token)) {
+            return null;
+        }
+
+        $record = ParticipantRecord::findOne(['replyToken' => $token]);
+
+        return $record !== null && hash_equals((string)$record->replyToken, $token) ? $record : null;
+    }
+
+    private function newReplyToken(): string
+    {
+        return StringHelper::randomStringWithChars(Addresses::TOKEN_ALPHABET, Addresses::TOKEN_LENGTH);
     }
 
     private function hashToken(string $rawToken): string

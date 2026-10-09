@@ -1,5 +1,28 @@
 # Release Notes for Pigeon
 
+## Unreleased
+
+### Added
+- Reply by email. People can answer a conversation by replying to its notification email; the
+  reply is posted as theirs. It's off by default. Switch it on and set a reply mailbox in the
+  **Reply by email** section of Pigeon's settings, then point Postmark (basic auth), Mailgun
+  (signed, with a replay window and single-use tokens) or SendGrid (ECDSA-signed raw body, or
+  basic auth) at Pigeon's webhook. You can also poll an IMAP mailbox (`pigeon/inbound/poll`, needs ext-imap) or pipe mail
+  to `pigeon/inbound/import -`.
+- Each participant gets their own reply address (`messages+<tag>@…`), matched exactly, with the
+  `In-Reply-To`/`References` headers as a fallback. A reply only posts if it comes from that
+  participant's address and they could post the same message on the site or in the control panel:
+  a guest with a live link, a user still on the thread, or staff with **Manage threads** (and the
+  user-to-user permission for direct threads). Pigeon doesn't start conversations from email.
+- Quoted history and signatures are stripped, HTML becomes escaped text, and out-of-office replies,
+  bounces, mailing lists and Pigeon's own mail are ignored. Deliveries are deduplicated by
+  Message-ID and limited per sender per hour. Attachments are screened against the attachment
+  settings, with a content check, and anything refused is listed in an internal note.
+- While reply by email is on, notification emails carry `Reply-To`, a Message-ID Pigeon
+  remembers, and `Auto-Submitted`, and say that replying to them works.
+- `pigeon/inbound/process`, `retry`, `log` and `prune` console commands, and
+  `Inbound::EVENT_BEFORE_PROCESS` / `EVENT_AFTER_PROCESS`.
+
 ## 5.0.4 - 2026-10-05
 
 > {warning} Staff with **Access Pigeon** no longer see user-to-user conversations. Grant the new

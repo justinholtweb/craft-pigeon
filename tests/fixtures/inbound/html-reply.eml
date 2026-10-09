@@ -1,0 +1,7 @@
+From: "Dee, Kay" <{{FROM}}>
+To: messages+{{TOKEN}}@pigeon.example.com
+Subject: Re: New message
+Message-ID: <{{MSGID}}>
+Content-Type: text/html; charset=utf-8
+
+<html><head><style>p{color:red}</style><script>alert(1)</script></head><body><p>Hello,</p><p>I still cannot log in &amp; the <a href="https://example.net/reset">reset link</a> fails.</p><ul><li>Chrome</li><li>Firefox</li></ul><div class="gmail_quote">On Thu someone wrote:<blockquote>old text</blockquote></div></body></html>

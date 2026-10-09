@@ -155,7 +155,7 @@ class GuestController extends Controller
         $participant = ParticipantRecord::findOne(['threadId' => $thread->id, 'email' => mb_strtolower($email), 'userId' => null]);
         $token = $participant ? Plugin::getInstance()->participants->mintToken($participant) : null;
         if ($token) {
-            $this->_sendGuestLink($thread, $email, $name, $token);
+            $this->_sendGuestLink($thread, $email, $name, $token, $participant);
             return $this->redirect("pigeon/t/{$token}");
         }
 
@@ -183,7 +183,7 @@ class GuestController extends Controller
                 $thread = Plugin::getInstance()->threads->getById($participant->threadId);
                 if ($thread && $thread->threadStatus !== ThreadStatus::Closed->value) {
                     $token = Plugin::getInstance()->participants->mintToken($participant);
-                    $this->_sendGuestLink($thread, $participant->email, $participant->name, $token);
+                    $this->_sendGuestLink($thread, $participant->email, $participant->name, $token, $participant);
                 }
             }
         }
@@ -250,7 +250,7 @@ class GuestController extends Controller
         return $this->redirect($request->getUrl());
     }
 
-    private function _sendGuestLink(Thread $thread, ?string $email, ?string $name, string $token): void
+    private function _sendGuestLink(Thread $thread, ?string $email, ?string $name, string $token, ?ParticipantRecord $participant = null): void
     {
         if (!$email) {
             return;
@@ -274,6 +274,12 @@ class GuestController extends Controller
 
         if ($settings->fromEmail) {
             $message->setFrom($settings->fromName ? [$settings->fromEmail => $settings->fromName] : $settings->fromEmail);
+        }
+
+        // Reply by email (when on): answering this email posts to the conversation. Sent because
+        // the guest did something, so it says so — `Auto-Submitted: auto-replied`.
+        if ($participant !== null) {
+            Plugin::getInstance()->inbound->prepareOutgoing($message, $thread, $participant, true);
         }
 
         $message->send();

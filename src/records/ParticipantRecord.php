@@ -14,6 +14,7 @@ use yii\db\ActiveQueryInterface;
  * @property string $role
  * @property string|null $tokenHash
  * @property string|null $tokenExpiresAt
+ * @property string|null $replyToken
  * @property int|null $lastReadMessageId
  * @property string|null $lastReadAt
  * @property bool $notify
