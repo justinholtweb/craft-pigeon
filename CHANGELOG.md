@@ -1,7 +1,6 @@
 # Release Notes for Pigeon
 
-## Unreleased
-
+## 5.1.0 - 2026-10-09
 ### Added
 - Reply by email. People can answer a conversation by replying to its notification email; the
   reply is posted as theirs. It's off by default. Switch it on and set a reply mailbox in the
